@@ -253,7 +253,7 @@ def country_maps(df1):
 #-------------------------------------
 value = datetime(2022, 4, 13)
 
-df = pd.read_csv(r"dataset\train.csv")
+df = pd.read_csv("dataset/train.csv")
 df1 = df.copy()
 
 #LIMPEZA===========LIMPEZA#
