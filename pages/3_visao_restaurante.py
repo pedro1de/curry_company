@@ -82,7 +82,7 @@ def avg_std_time_graph(df1, fig_height=420):
     return fig
 
 # ---------------- MAIN ----------------
-df = pd.read_csv(r"dataset\train.csv")
+df = pd.read_csv("dataset\train.csv")
 df1 = clean_code(df)
 
 # ---------------- SIDEBAR ----------------
