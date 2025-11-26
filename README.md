@@ -89,6 +89,25 @@ O **painel estratégico** foi desenvolvido com base em três visões principais 
 * Distribuição do tempo médio de entrega por cidade
 * Tempo médio de entrega por tipo de pedido
 
+🎛️ Filtros Disponíveis no Dashboard
+
+O dashboard oferece filtros interativos para que você possa explorar os dados de forma mais precisa e personalizada. Os filtros disponíveis são:
+
+📅 Filtro de Data — “Até que data”
+
+Permite selecionar uma data limite.
+Todos os pedidos exibidos no dashboard serão anteriores ou iguais à data escolhida.
+
+🏙️ Filtro de Cidade
+
+Um multiselect onde você pode escolher uma ou várias cidades.
+Somente dados das cidades selecionadas serão exibidos nas visualizações.
+
+🚦 Filtro de Condição do Tráfego
+
+Permite selecionar as condições de tráfego desejadas (ex.: Low, Medium, High, Jam).
+O dashboard atualiza automaticamente para refletir apenas a seleção feita.
+
 ---
 
 ## 💡 4. Top 3 Insights de Dados
