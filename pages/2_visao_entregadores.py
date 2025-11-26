@@ -10,6 +10,7 @@ from PIL import Image
 from streamlit_folium import folium_static
 
 st.set_page_config( page_title="Visão Entregadores", layout="wide")
+
 #----------------FUNÇÕES--------------
 #-------------------------------------
 def clean_code(df1):
@@ -57,30 +58,24 @@ def clean_code(df1):
     df1['Time_taken(min)'] = df1['Time_taken(min)'].astype(str).str.extract('(\d+)')
     df1['Time_taken(min)'] = pd.to_numeric(df1['Time_taken(min)'], errors='coerce')
 
-
     return df1
 
 
-
-
-        
 def top_delivery(df1, top_asc):
-        df2 = (
+    df2 = (
         df1.loc[:, ['Delivery_person_ID', 'City', 'Time_taken(min)']]
            .groupby(['City', 'Delivery_person_ID'])
            .mean()
            .sort_values(['City', 'Time_taken(min)'], ascending = top_asc)
-           .reset_index() )
+           .reset_index()
+    )
 
+    df_aux01 = df2.loc[df2['City'] == 'Metropolitan', :].head(10)
+    df_aux02 = df2.loc[df2['City'] == 'Urban', :].head(10)
+    df_aux03 = df2.loc[df2['City'] == 'Semi-Urban', :].head(10)
 
-
-
-        df_aux01 = df2.loc[df2['City'] == 'Metropolitan', :].head(10)
-        df_aux02 = df2.loc[df2['City'] == 'Urban', :].head(10)
-        df_aux03 = df2.loc[df2['City'] == 'Semi-Urban', :].head(10)
-
-        df3 = pd.concat([df_aux01, df_aux02, df_aux03]).reset_index(drop=True)
-        return df3
+    df3 = pd.concat([df_aux01, df_aux02, df_aux03]).reset_index(drop=True)
+    return df3
 
 #-------------------------------------
 #----------Início da Logica-----------
@@ -91,59 +86,70 @@ df = pd.read_csv("dataset/train.csv")
 
 df1 = df.copy()
 
-#LIMPEZA===========LIMPEZA#
-df1 = clean_code( df )
+# LIMPEZA
+df1 = clean_code(df)
 
-
-#=======================SIDEBAR=======================#
-
+#======================= SIDEBAR =======================#
 
 Image = Image.open('curry_companyPNG.png')
 
-st.sidebar.image( Image, width=120)
+st.sidebar.image(Image, width=120)
 
-st.sidebar.markdown( '# Cury Company')
-st.sidebar.markdown( '## Fastest Delivery in Town')
-st.sidebar.markdown( """---""")
-st.sidebar.markdown( '## Selecione uma data limite')
+st.sidebar.markdown('# Cury Company')
+st.sidebar.markdown('## Fastest Delivery in Town')
+st.sidebar.markdown("""---""")
+st.sidebar.markdown('## Selecione uma data limite')
+
+# 🔥 CORREÇÃO 1 — Texto alterado conforme pedido
 data_slider = st.sidebar.slider(
-    'Até qual valor?',
-    value=datetime(2022, 4, 13 ),
+    'Até que data?',
+    value=datetime(2022, 4, 13),
     min_value=datetime(2022, 2, 11),
     max_value=datetime(2022, 4, 6),
-    format='DD-MM-YYYY' )
-st.sidebar.markdown( """---""")
+    format='DD-MM-YYYY'
+)
+st.sidebar.markdown("""---""")
 
-# === SIDEBAR: multiselect com default como lista ===
+# 🔥 CORREÇÃO 2 — FILTRO DE CIDADE (NOVO)
+city_list = sorted(df1['City'].dropna().unique())
+city_filter = st.sidebar.multiselect(
+    "Filtrar por cidade",
+    options=city_list,
+    default=city_list
+)
+st.sidebar.markdown("""---""")
+
+# === SIDEBAR: multiselect com default como lista
 traffic_options = st.sidebar.multiselect(
     'Quais as condições de trânsito',
     ['Low', 'Medium', 'High', 'Jam'],
-    default=['Low']  # <-- sempre lista
+    default=['Low']
 )
 
 st.sidebar.markdown("""---""")
 st.sidebar.markdown('Powered By Pedro Oliveira')
 
-# === FILTRO DE DATA ===
-linhas_selecionadas = df1['Order_Date'] < data_slider
-df1 = df1.loc[linhas_selecionadas, :].copy()
+# === FILTRO DE DATA
+df1 = df1[df1['Order_Date'] < data_slider].copy()
 
-# === NORMALIZAR coluna de trÃ¢nsito (apenas uma vez, antes dos filtros) ===
+# Normalizar trânsito
 df1['Road_traffic_density'] = (
     df1['Road_traffic_density']
-      .astype('string')   # garante tipo texto
-      .str.strip()        # remove espaços extras
-      .str.capitalize()   # deixa 'low' -> 'Low', 'LOW' -> 'Low'
+        .astype('string')
+        .str.strip()
+        .str.capitalize()
 )
 
-# === FILTRO DE TRANSITO (com comportamento seguro se nada for selecionado) ===
-if traffic_options:  # se lista não vazia, filtra; senão mantem tudo
-    # Garantir que opções também estejam no mesmo formato (capitalize)
+# === FILTRO DE CIDADE (NOVO)
+if city_filter:
+    df1 = df1[df1['City'].isin(city_filter)].copy()
+
+# === FILTRO DE TRANSITO
+if traffic_options:
     normalized_options = [opt.capitalize() for opt in traffic_options]
     df1 = df1[df1['Road_traffic_density'].isin(normalized_options)].copy()
-# else: não filtra (mantém todas as linhas)
 
-#=======================LAYOUT STREAMLIT=======================#
+#======================= LAYOUT STREAMLIT =======================#
 
 st.header('Marketplace - Visão Entregadores')
 
@@ -178,7 +184,6 @@ with tab1:
 
         with col1:
             st.markdown('##### Avaliações médias por entregador')
-            # A avaliação média por entregador
             media_avaliacao_por_entregador = (
                 df1.groupby('Delivery_person_ID')['Delivery_person_Ratings']
                 .mean()
@@ -205,7 +210,7 @@ with tab1:
             st.dataframe(av_media_clima)
 
 # ============================================
-# ENTREGADORES MAIS RAPIDOS E MAIS LENTOS
+# ENTREGADORES MAIS RÁPIDOS E MAIS LENTOS
 # ============================================
 with st.container():
     st.markdown("""---""")
@@ -222,5 +227,3 @@ with st.container():
         st.markdown('##### Top Entregadores mais lentos')
         df3 = top_delivery(df1, top_asc=False)
         st.dataframe(df3)
-
-
