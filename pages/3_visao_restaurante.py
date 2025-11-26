@@ -109,6 +109,16 @@ traffic_options = st.sidebar.multiselect(
     ['Low', 'Medium', 'High', 'Jam'],
     default=['Low']
 )
+
+# --------------------  
+# ✔️ **NOVO FILTRO – MULTISELECT DE CIDADE**
+# --------------------
+city_options = st.sidebar.multiselect(
+    'Selecione as cidades',
+    options=df1['City'].dropna().unique().tolist(),
+    default=df1['City'].dropna().unique().tolist()
+)
+
 st.sidebar.markdown("""---""")
 st.sidebar.markdown('Powered By Pedro Oliveira')
 
@@ -118,6 +128,10 @@ df1['Road_traffic_density'] = df1['Road_traffic_density'].astype('string').str.s
 if traffic_options:
     normalized_options = [opt.capitalize() for opt in traffic_options]
     df1 = df1[df1['Road_traffic_density'].isin(normalized_options)].copy()
+
+# ✔️ aplicar filtro cidade
+if city_options:
+    df1 = df1[df1['City'].isin(city_options)].copy()
 
 # ---------------- LAYOUT ----------------
 st.header('Marketplace - Visão Restaurantes')
