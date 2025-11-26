@@ -18,7 +18,14 @@ import streamlit as st
 
 st.markdown(
     """
-    Growth Dashboard foi construído para acompanhar as métricas de crescimento dos Entregadores e Restaurantes.
+    st.markdown(
+    """
+    # 📊 Bem-vindo ao Dashboard da Curry Company
+    Este painel apresenta as principais métricas de desempenho da operação — incluindo volume de pedidos, desempenho dos entregadores, eficiência dos restaurantes e padrões semanais de entrega.
+
+    Utilize os filtros à esquerda para explorar os dados por cidade, tipo de tráfego e período.  
+    Todas as visualizações são atualizadas automaticamente conforme suas escolhas.
+    """
 
     ### Como utilizar esse Growth Dashboard?
     - **Visão Empresa:**
