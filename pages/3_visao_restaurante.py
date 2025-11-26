@@ -96,7 +96,7 @@ st.sidebar.markdown('## Fastest Delivery in Town')
 st.sidebar.markdown("""---""")
 
 data_slider = st.sidebar.slider(
-    'Até qual valor?',
+    'Até que data?',
     value=datetime(2022, 4, 13),
     min_value=datetime(2022, 2, 11),
     max_value=datetime(2022, 4, 6),
@@ -135,7 +135,7 @@ with tab1:
         col3, col4, col5, col6 = st.columns(4, gap='medium')
         mostrar_metricas_filtro(df1, 'Festival', 'Time_taken(min)', col3, col5, label_sim='f', label_nao='s/F')
 
-    # Distribution of Orders by City (Pie) ← TÍTULO CORRIGIDO AQUI
+    # Distribution of Orders by City (Pie)
     with st.container():
         st.title('Distribuição de Pedidos por Cidade (%)')
         counts = df1['City'].value_counts()
