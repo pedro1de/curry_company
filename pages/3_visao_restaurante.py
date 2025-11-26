@@ -3,18 +3,18 @@ import pandas as pd
 from haversine import haversine
 import numpy as np
 import streamlit as st
-from datetime import datetime
-from PIL import Image as PILImage
+from datetime import datetime, date
+from PIL import Image
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Visão Restaurante", layout="wide")
+st.set_page_config( page_title="Visão Restaurante", layout="wide")
 
 # ---------------- FUNÇÕES ----------------
 def clean_code(df1):
     # Limpar idade
     df1['Delivery_person_Age'] = df1['Delivery_person_Age'].astype(str).str.strip()
     df1['Delivery_person_Age'] = df1['Delivery_person_Age'].replace(['NaN', '', 'NaN '], np.nan)
-    df1['Delivery_person_Age'] = pd.to_numeric(df1['Delivery_person_Age'], errors='coerce').astype('Int64')
+    df1['Delivery_person_Age'] = df1['Delivery_person_Age'].astype(float).astype('Int64')
 
     # Transformar data em datetime (forçando coerção)
     df1['Order_Date'] = pd.to_datetime(df1['Order_Date'], format='%d-%m-%Y', errors='coerce')
@@ -25,14 +25,10 @@ def clean_code(df1):
     df1['Delivery_person_Ratings'] = pd.to_numeric(df1['Delivery_person_Ratings'], errors='coerce')
 
     # Limpar City
-    df1['City'] = df1['City'].astype('string').str.strip().replace({'NaN': pd.NA, 'nan': pd.NA, 'NULL': pd.NA, 'null': pd.NA, '': pd.NA})
+    df1['City'] = df1['City'].astype('string').str.strip().replace({'NaN': np.nan, 'nan': np.nan, 'NULL': np.nan, 'null': np.nan, '': np.nan})
 
-    # Limpar Festival -> normalizar para 'Yes'/'No'/pd.NA
-    fest = df1['Festival'].astype('string').str.strip().str.lower()
-    fest = fest.replace({'nan': pd.NA, 'none': pd.NA, '': pd.NA})
-    # map possible values to Yes/No
-    fest = fest.map(lambda v: 'Yes' if str(v) in ['yes', 'sim', 'true', 'y', '1'] else ('No' if str(v) in ['no', 'nao', 'não', 'false', 'n', '0'] else pd.NA))
-    df1['Festival'] = fest
+    # Limpar Festival
+    df1['Festival'] = df1['Festival'].astype('string').str.strip().str.capitalize().replace({'Nan': np.nan, '': np.nan})
 
     # Limpar Weatherconditions -> Weather_clean
     s = df1['Weatherconditions'].astype('string').str.strip()
@@ -40,61 +36,39 @@ def clean_code(df1):
     s = s.str.replace(r'^conditions\s+', '', regex=True)
     df1['Weather_clean'] = s
 
-    # Time_taken(min) -> extrair número e conv. para numeric
-    df1['Time_taken(min)'] = df1['Time_taken(min)'].astype(str).str.extract(r'(\d+)')
+    # Time_taken(min)
+    df1['Time_taken(min)'] = df1['Time_taken(min)'].astype(str).str.extract('(\d+)')
     df1['Time_taken(min)'] = pd.to_numeric(df1['Time_taken(min)'], errors='coerce')
-
-    # Normalizar Road_traffic_density (preparar para filtro)
-    df1['Road_traffic_density'] = df1['Road_traffic_density'].astype('string').str.strip().str.capitalize().replace({'Nan': pd.NA, '': pd.NA})
 
     return df1
 
-def distance_mean_km(df1):
-    """Calcula a distância média (km) entre restaurante e entrega.
-    Retorna float arredondado com 2 casas.
-    """
+def distance(df1):
     cols = ['Delivery_location_latitude', 'Delivery_location_longitude', 'Restaurant_latitude', 'Restaurant_longitude']
-    # Checar se colunas existem e têm valores não nulos
-    if not all(c in df1.columns for c in cols):
-        return np.nan
-    df_aux = df1.dropna(subset=cols).copy()
-    if df_aux.shape[0] == 0:
-        return np.nan
-
-    distances = df_aux.loc[:, cols].apply(
+    df1['distance'] = df1.loc[:, cols].apply(
         lambda x: haversine(
             (x['Restaurant_latitude'], x['Restaurant_longitude']),
             (x['Delivery_location_latitude'], x['Delivery_location_longitude'])
         ), axis=1
     )
-    return float(np.round(distances.mean(), 2))
+    return np.round(df1['distance'].mean(), 2)
 
 def mostrar_metricas_filtro(df, filtro_col, valor_col, col_sim, col_nao, label_sim='Com', label_nao='Sem'):
-    """Mostra média e desvio padrão para duas classes ('Yes' e 'No') de uma coluna filtro.
-       A função é robusta a valores faltantes e normaliza múltiplas formas de sim/não.
-    """
-    # Normalizar filtro: mapear valores 'yes','sim','no'...
-    filtro = df[filtro_col].astype('string').str.strip().str.lower().replace({'nan': None, 'none': None})
-    is_yes = filtro.isin(['yes', 'sim', 'true', 'y', '1'])
-    is_no = filtro.isin(['no', 'nao', 'não', 'false', 'n', '0'])
+    filtro_sim = df[filtro_col] == 'Yes'
+    filtro_nao = df[filtro_col] == 'No'
 
-    # Calcular
-    media_sim = np.round(df.loc[is_yes, valor_col].mean(skipna=True), 2) if df.loc[is_yes, :].shape[0] > 0 else np.nan
-    std_sim = np.round(df.loc[is_yes, valor_col].std(skipna=True), 2) if df.loc[is_yes, :].shape[0] > 0 else np.nan
-    media_nao = np.round(df.loc[is_no, valor_col].mean(skipna=True), 2) if df.loc[is_no, :].shape[0] > 0 else np.nan
-    std_nao = np.round(df.loc[is_no, valor_col].std(skipna=True), 2) if df.loc[is_no, :].shape[0] > 0 else np.nan
+    media_sim = np.round(df.loc[filtro_sim, valor_col].mean(), 2)
+    std_sim = np.round(df.loc[filtro_sim, valor_col].std(), 2)
+    media_nao = np.round(df.loc[filtro_nao, valor_col].mean(), 2)
+    std_nao = np.round(df.loc[filtro_nao, valor_col].std(), 2)
 
-    col_sim.metric(f'Tempo Médio ({label_sim})', str(media_sim))
-    col_sim.metric(f'Desv. Padrão ({label_sim})', str(std_sim))
-    col_nao.metric(f'Tempo Médio ({label_nao})', str(media_nao))
-    col_nao.metric(f'Desv. Padrão ({label_nao})', str(std_nao))
+    col_sim.metric(f'Temp. Médio ({label_sim})', media_sim)
+    col_sim.metric(f'Desv. Padrão ({label_sim})', std_sim)
+    col_nao.metric(f'Temp. Médio ({label_nao})', media_nao)
+    col_nao.metric(f'Desv. Padrão ({label_nao})', std_nao)
 
 def avg_std_time_graph(df1, fig_height=420):
     tempo_std = df1.groupby('City')['Time_taken(min)'].agg(['mean', 'std']).reset_index()
     tempo_std.columns = ['City', 'Tempo Médio', 'Desvio Padrão']
-    # preencher NaNs (p.ex. std NaN quando 1 amostra) com 0 para plotagem
-    tempo_std['Desvio Padrão'] = tempo_std['Desvio Padrão'].fillna(0)
-    tempo_std['Tempo Médio'] = tempo_std['Tempo Médio'].fillna(0)
     fig = go.Figure()
     fig.add_trace(
         go.Bar(
@@ -113,73 +87,39 @@ df = pd.read_csv("dataset/train.csv")
 df1 = clean_code(df)
 
 # ---------------- SIDEBAR ----------------
-logo = PILImage.open('curry_companyPNG.png')
+logo = Image.open('curry_companyPNG.png')  # renomeado para evitar sobrescrever a classe Image
 
-st.sidebar.image(logo, width=120)
+st.sidebar.image( logo, width=120)
+
 
 st.sidebar.markdown('# Cury Company')
 st.sidebar.markdown('## Fastest Delivery in Town')
 st.sidebar.markdown("""---""")
 
-# no topo do arquivo (se ainda não importado)
-from datetime import datetime, date
-
-# ---------------- SIDEBAR ----------------
-# ... (logo, título etc)
-
-# Slider com objetos date (type homogenea)
+# uso de date() para garantir tipos homogêneos no slider
 data_slider = st.sidebar.slider(
-    'Mostrar pedidos até a data:',
-    value=date(2022, 4, 6),            # default coerente com max_value
+    'Até qual valor?',
+    value=date(2022, 4, 6),           # valor padrão coerente com intervalo
     min_value=date(2022, 2, 11),
     max_value=date(2022, 4, 13),
     format='DD-MM-YYYY'
 )
-
-st.sidebar.markdown("---")
-
-# ---------------- FILTROS ----------------
-# Certifique-se que Order_Date é datetime (na sua função clean_code você já faz isso)
-# Para comparar com o slider (date), convertemos Order_Date para date
-df1 = df1[df1['Order_Date'].dt.date <= data_slider].copy()
-# no topo do arquivo (se ainda não importado)
-from datetime import datetime, date
-
-# ---------------- SIDEBAR ----------------
-# ... (logo, título etc)
-
-# Slider com objetos date (type homogenea)
-data_slider = st.sidebar.slider(
-    'Mostrar pedidos até a data:',
-    value=date(2022, 4, 6),            # default coerente com max_value
-    min_value=date(2022, 2, 11),
-    max_value=date(2022, 4, 13),
-    format='DD-MM-YYYY'
-)
-
-st.sidebar.markdown("---")
-
-# ---------------- FILTROS ----------------
-# Certifique-se que Order_Date é datetime (na sua função clean_code você já faz isso)
-# Para comparar com o slider (date), convertemos Order_Date para date
-df1 = df1[df1['Order_Date'].dt.date <= data_slider].copy()
-
 st.sidebar.markdown("""---""")
 
 traffic_options = st.sidebar.multiselect(
     'Quais as condições de trânsito',
-    options=['Low', 'Medium', 'High', 'Jam'],
+    ['Low', 'Medium', 'High', 'Jam'],
     default=['Low']
 )
 st.sidebar.markdown("""---""")
-# Removida identificação pessoal do sidebar (privacidade)
-# st.sidebar.markdown('Powered By ...')
+st.sidebar.markdown('Powered By Pedro Oliveira')
 
 # ---------------- FILTROS ----------------
-df1 = df1[df1['Order_Date'] <= data_slider].copy()
+# comparando com .dt.date pois o slider usa date()
+df1 = df1[df1['Order_Date'].dt.date <= data_slider].copy()
+df1['Road_traffic_density'] = df1['Road_traffic_density'].astype('string').str.strip().str.capitalize()
 if traffic_options:
     normalized_options = [opt.capitalize() for opt in traffic_options]
-    # proteger contra valores nulos
     df1 = df1[df1['Road_traffic_density'].isin(normalized_options)].copy()
 
 # ---------------- LAYOUT ----------------
@@ -191,30 +131,27 @@ with tab1:
     with st.container():
         st.title('Overall Metrics')
         col1, col2 = st.columns(2, gap='medium')
-        col1.metric('Ent. Únicos', int(df1['Delivery_person_ID'].nunique()))
-        col2.metric('Dist. Média (km)', distance_mean_km(df1))
+        # usam nunique para contar entregadores distintos (corrigido)
+        col1.metric('Ent. Únicos', df1['Delivery_person_ID'].nunique())
+        col2.metric('Dist. Média', distance(df1))
         st.markdown("""---""")
 
         col3, col4, col5, col6 = st.columns(4, gap='medium')
-        mostrar_metricas_filtro(df1, 'Festival', 'Time_taken(min)', col3, col5, label_sim='Com Festival', label_nao='Sem Festival')
+        mostrar_metricas_filtro(df1, 'Festival', 'Time_taken(min)', col3, col5, label_sim='f', label_nao='s/F')
 
-    # Distribution of deliveries by City (Pie) - porcentagem de pedidos por cidade
+    # Average Delivery Time by City (Pie)
     with st.container():
-        st.title('Distribuição de Pedidos por Cidade')
-        counts = df1['City'].value_counts(dropna=True)
+        st.title('Average Delivery Time by City')
+        counts = df1['City'].value_counts()
         labels, values = counts.index.tolist(), counts.values.tolist()
-        if len(values) > 0:
-            min_idx = int(values.index(min(values)))
-        else:
-            min_idx = 0
-        pull = [0.0] * len(values)
-        if values:
-            pull[min_idx] = 0.1
+        min_idx = int(values.index(min(values)))
+        pull = [0.0]*len(values)
+        pull[min_idx] = 0.1
         fig = go.Figure(
             data=[go.Pie(labels=labels, values=values, pull=pull, textinfo='percent+label', hole=0,
                          marker=dict(line=dict(color='white', width=2)))]
         )
-        fig.update_layout(title_text='Porcentagem de Pedidos por Cidade')
+        fig.update_layout(title_text='Média de Tempo de Entrega por Cidade')
         st.plotly_chart(fig)
         st.markdown('___')
 
@@ -239,14 +176,12 @@ with tab1:
         df_aux = df1.loc[:, cols].groupby(['City', 'Road_traffic_density']).agg({'Time_taken(min)': ['mean', 'std']})
         df_aux.columns = ['avg_time', 'std_time']
         df_aux = df_aux.reset_index()
-        # preencher std_time NaN para evitar erros no color mapping
-        df_aux['std_time'] = df_aux['std_time'].fillna(0)
         fig = px.sunburst(
             df_aux,
             path=['City', 'Road_traffic_density'],
             values='avg_time',
             color='std_time',
             color_continuous_scale='RdBu',
-            color_continuous_midpoint=np.average(df_aux['std_time']) if not df_aux['std_time'].isna().all() else 0
+            color_continuous_midpoint=np.average(df_aux['std_time'])
         )
         st.plotly_chart(fig)
