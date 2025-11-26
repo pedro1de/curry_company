@@ -20,7 +20,7 @@ st.markdown(
     """
     st.markdown(
     """
-    📊 Bem-vindo ao Dashboard da Curry Company
+    Bem-vindo ao Dashboard da Curry Company
     Este painel apresenta as principais métricas de desempenho da operação. Incluindo volume de pedidos, desempenho dos entregadores, eficiência dos restaurantes e padrões semanais de entrega.
 
     Utilize os filtros à esquerda para explorar os dados por cidade, tipo de tráfego e período.  
