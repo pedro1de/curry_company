@@ -18,27 +18,28 @@ import streamlit as st
 
 st.markdown(
     """
-    st.markdown(
-    """
-    Bem-vindo ao Dashboard da Curry Company
-    Este painel apresenta as principais métricas de desempenho da operação. Incluindo volume de pedidos, desempenho dos entregadores, eficiência dos restaurantes e padrões semanais de entrega.
+# 📊 Bem-vindo ao Dashboard da Curry Company
 
-    Utilize os filtros à esquerda para explorar os dados por cidade, tipo de tráfego e período.  
-    Todas as visualizações são atualizadas automaticamente conforme suas escolhas.
-    """
+Este painel apresenta as principais métricas de desempenho da operação — incluindo volume de pedidos, desempenho dos entregadores, eficiência dos restaurantes e padrões semanais de entrega.
 
-    ### Como utilizar esse Growth Dashboard?
-    - **Visão Empresa:**
-        - Visão Gerencial: Métricas gerais de comportamento.
-        - Visão Tática: Indicadores semanais de crescimento.
-        - Visão Geográfica: Insights de geolocalização.
-    - **Visão Entregador:**
-        - Acompanhamento dos indicadores semanais de crescimento
-    - **Visão Restaurante:**
-        - Indicadores semanais de crescimento dos restaurantes
+**Utilize os filtros à esquerda** para explorar os dados por cidade, tipo de tráfego e período.  
+Todas as visualizações são atualizadas automaticamente conforme suas escolhas.
 
-    ### Ask for Help
-        - Time de Data Science no Discord
-        - @Pedro
+---
+
+### Como utilizar este Growth Dashboard
+
+- **Visão Empresa**
+  - Visão Gerencial: métricas gerais de comportamento.
+  - Visão Tática: indicadores semanais de crescimento.
+  - Visão Geográfica: insights de geolocalização.
+- **Visão Entregadores**
+  - Acompanhamento dos indicadores e rankings por cidade.
+- **Visão Restaurantes**
+  - Indicadores de desempenho e eficiência logística.
+
+---
+
+**Ajuda / Contato:** pedrolimagestor.mkt@gmail.com
     """
 )
