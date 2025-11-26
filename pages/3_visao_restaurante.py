@@ -121,21 +121,49 @@ st.sidebar.markdown('# Cury Company')
 st.sidebar.markdown('## Fastest Delivery in Town')
 st.sidebar.markdown("""---""")
 
-# Slider: ajustar valores mínimos e máximos coerentes com o dataset
-data_min = df1['Order_Date'].min()
-data_max = df1['Order_Date'].max()
-# Garante fallback caso dados estejam vazios
-if pd.isna(data_min) or pd.isna(data_max):
-    data_min = datetime(2022, 2, 11)
-    data_max = datetime(2022, 4, 6)
+# no topo do arquivo (se ainda não importado)
+from datetime import datetime, date
 
+# ---------------- SIDEBAR ----------------
+# ... (logo, título etc)
+
+# Slider com objetos date (type homogenea)
 data_slider = st.sidebar.slider(
     'Mostrar pedidos até a data:',
-    value=data_max,
-    min_value=data_min,
-    max_value=data_max,
+    value=date(2022, 4, 6),            # default coerente com max_value
+    min_value=date(2022, 2, 11),
+    max_value=date(2022, 4, 13),
     format='DD-MM-YYYY'
 )
+
+st.sidebar.markdown("---")
+
+# ---------------- FILTROS ----------------
+# Certifique-se que Order_Date é datetime (na sua função clean_code você já faz isso)
+# Para comparar com o slider (date), convertemos Order_Date para date
+df1 = df1[df1['Order_Date'].dt.date <= data_slider].copy()
+# no topo do arquivo (se ainda não importado)
+from datetime import datetime, date
+
+# ---------------- SIDEBAR ----------------
+# ... (logo, título etc)
+
+# Slider com objetos date (type homogenea)
+data_slider = st.sidebar.slider(
+    'Mostrar pedidos até a data:',
+    value=date(2022, 4, 6),            # default coerente com max_value
+    min_value=date(2022, 2, 11),
+    max_value=date(2022, 4, 13),
+    format='DD-MM-YYYY'
+)
+
+st.sidebar.markdown("---")
+
+# ---------------- FILTROS ----------------
+# Certifique-se que Order_Date é datetime (na sua função clean_code você já faz isso)
+# Para comparar com o slider (date), convertemos Order_Date para date
+df1 = df1[df1['Order_Date'].dt.date <= data_slider].copy()
+
 st.sidebar.markdown("""---""")
 
 traffic_options = st.sidebar.multiselect(
