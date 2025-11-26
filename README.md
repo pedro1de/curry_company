@@ -38,7 +38,7 @@ O CEO deseja visualizar as seguintes métricas:
 2. Distância média entre restaurantes e locais de entrega
 3. Tempo médio e desvio padrão de entrega durante festivais
 4. Tempo médio e desvio padrão de entrega fora de festivais
-5. Tempo médio de entrega por cidade
+5. Distribuição de Pedidos por Cidade (%)
 
 O objetivo do projeto é **criar um conjunto de gráficos e tabelas interativas** que exibam essas métricas de forma clara e intuitiva para o CEO.
 
@@ -85,7 +85,7 @@ O **painel estratégico** foi desenvolvido com base em três visões principais 
 * Distância média percorrida
 * Tempo médio de entrega em festivais e dias normais
 * Desvio padrão do tempo de entrega em festivais e dias normais
-* Tempo médio de entrega por cidade
+* Distribuição de Pedidos por Cidade (%)
 * Distribuição do tempo médio de entrega por cidade
 * Tempo médio de entrega por tipo de pedido
 
@@ -95,7 +95,7 @@ O **painel estratégico** foi desenvolvido com base em três visões principais 
 
 1. A **sazonalidade dos pedidos é diária**, com variação de cerca de **10% entre dias consecutivos**.
 2. As **cidades semi-urbanas** não apresentam condições de trânsito classificadas como ruins.
-3. As **maiores variações no tempo de entrega** ocorrem durante **climas ensolarados**.
+3. As **maiores avaliações de entrega** ocorrem durante **climas ensolarados**.
 
 ---
 
@@ -114,9 +114,4 @@ Com base na análise, observou-se que o **número de pedidos cresceu entre a sem
 
 ---
 
-## 🚀 7. Próximos Passos
-
-1. Reduzir o número de métricas exibidas para maior clareza
-2. Criar novos filtros interativos
-3. Adicionar novas visões de negócio
 
