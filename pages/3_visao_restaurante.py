@@ -3,7 +3,7 @@ import pandas as pd
 from haversine import haversine
 import numpy as np
 import streamlit as st
-from datetime import datetime, date
+from datetime import datetime
 from PIL import Image
 import plotly.graph_objects as go
 
@@ -87,21 +87,19 @@ df = pd.read_csv("dataset/train.csv")
 df1 = clean_code(df)
 
 # ---------------- SIDEBAR ----------------
-logo = Image.open('curry_companyPNG.png')  # renomeado para evitar sobrescrever a classe Image
+Image = Image.open('curry_companyPNG.png')
 
-st.sidebar.image( logo, width=120)
-
+st.sidebar.image( Image, width=120)
 
 st.sidebar.markdown('# Cury Company')
 st.sidebar.markdown('## Fastest Delivery in Town')
 st.sidebar.markdown("""---""")
 
-# uso de date() para garantir tipos homogêneos no slider
 data_slider = st.sidebar.slider(
     'Até qual valor?',
-    value=date(2022, 4, 6),           # valor padrão coerente com intervalo
-    min_value=date(2022, 2, 11),
-    max_value=date(2022, 4, 13),
+    value=datetime(2022, 4, 13),
+    min_value=datetime(2022, 2, 11),
+    max_value=datetime(2022, 4, 6),
     format='DD-MM-YYYY'
 )
 st.sidebar.markdown("""---""")
@@ -115,8 +113,7 @@ st.sidebar.markdown("""---""")
 st.sidebar.markdown('Powered By Pedro Oliveira')
 
 # ---------------- FILTROS ----------------
-# comparando com .dt.date pois o slider usa date()
-df1 = df1[df1['Order_Date'].dt.date <= data_slider].copy()
+df1 = df1[df1['Order_Date'] < data_slider].copy()
 df1['Road_traffic_density'] = df1['Road_traffic_density'].astype('string').str.strip().str.capitalize()
 if traffic_options:
     normalized_options = [opt.capitalize() for opt in traffic_options]
@@ -131,17 +128,16 @@ with tab1:
     with st.container():
         st.title('Overall Metrics')
         col1, col2 = st.columns(2, gap='medium')
-        # usam nunique para contar entregadores distintos (corrigido)
-        col1.metric('Ent. Únicos', df1['Delivery_person_ID'].nunique())
+        col1.metric('Ent. Únicos', df1['Delivery_person_ID'].count())
         col2.metric('Dist. Média', distance(df1))
         st.markdown("""---""")
 
         col3, col4, col5, col6 = st.columns(4, gap='medium')
         mostrar_metricas_filtro(df1, 'Festival', 'Time_taken(min)', col3, col5, label_sim='f', label_nao='s/F')
 
-    # Average Delivery Time by City (Pie)
+    # Distribution of Orders by City (Pie) ← TÍTULO CORRIGIDO AQUI
     with st.container():
-        st.title('Average Delivery Time by City')
+        st.title('Distribuição de Pedidos por Cidade (%)')
         counts = df1['City'].value_counts()
         labels, values = counts.index.tolist(), counts.values.tolist()
         min_idx = int(values.index(min(values)))
@@ -151,7 +147,7 @@ with tab1:
             data=[go.Pie(labels=labels, values=values, pull=pull, textinfo='percent+label', hole=0,
                          marker=dict(line=dict(color='white', width=2)))]
         )
-        fig.update_layout(title_text='Média de Tempo de Entrega por Cidade')
+        fig.update_layout(title_text='Distribuição de Pedidos por Cidade (%)')
         st.plotly_chart(fig)
         st.markdown('___')
 
